@@ -1,0 +1,29 @@
+fastapi==0.115.0
+uvicorn[standard]==0.30.6
+python-multipart==0.0.9
+pydantic==2.8.2
+
+# --- transcription ---
+faster-whisper>=1.0.3
+
+# --- audio I/O / preprocessing (same libs as the reference project) ---
+librosa>=0.10.2
+pydub>=0.25.1
+soundfile>=0.12.1
+numpy>=1.26.4
+
+# --- segmentation ---
+sentence-transformers>=3.0.1
+scikit-learn>=1.5.1
+
+# --- chapter titling / keywords ---
+keybert>=0.8.5
+transformers>=4.44.2
+torch>=2.4.0
+
+# --- sentiment (same lib as the reference project) ---
+vaderSentiment>=3.3.2
+
+# --- sources ---
+yt-dlp>=2024.8.6
+httpx>=0.27.0

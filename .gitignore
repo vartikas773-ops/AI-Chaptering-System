@@ -1,0 +1,18 @@
+# secrets
+.env
+backend/.env
+
+# python
+.venv/
+__pycache__/
+*.pyc
+
+# runtime data (uploads, audio, database)
+backend/storage/
+
+# frontend
+node_modules/
+dist/
+
+# editor
+.idea/
