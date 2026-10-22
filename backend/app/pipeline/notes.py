@@ -18,9 +18,19 @@ import re
 
 import numpy as np
 from sklearn.metrics.pairwise import cosine_similarity
+from transformers import pipeline as hf_pipeline
 
-from .chaptering import _get_titler
+from ..config import TITLING_MODEL
 from .segmentation import _get_sbert
+
+_titler = None
+
+
+def _get_titler():
+    global _titler
+    if _titler is None:
+        _titler = hf_pipeline("summarization", model=TITLING_MODEL)
+    return _titler
 
 SUMMARY_CHUNK_WORDS = 500
 MAX_SUMMARY_CHUNKS = 3

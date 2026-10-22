@@ -20,23 +20,29 @@ def _get_model(model_size: str = WHISPER_MODEL) -> WhisperModel:
     return _model_cache[model_size]
 
 
-def transcribe_chunks(chunk_paths: list[Path], chunk_minutes: int = 10, model_size: str = WHISPER_MODEL) -> list[dict]:
+def transcribe_chunks(
+    chunk_paths: list[Path], chunk_minutes: int = 10, model_size: str = WHISPER_MODEL
+) -> tuple[list[dict], str | None]:
     """
-    Returns a flat list of {"start": float, "end": float, "text": str}
-    sentence/segment dicts, offset-corrected across chunk boundaries.
+    Returns (segments, language):
+      segments: a flat list of {"start": float, "end": float, "text": str} dicts,
+                offset-corrected across chunk boundaries.
+      language: the language code Whisper detected on the first chunk (e.g. "en", "fr"),
+                passed on to Gemini so it titles chapters in the transcript's own language.
     """
     model = _get_model(model_size)
     offset = 0.0
     all_segments: list[dict] = []
+    language: str | None = None
 
     for chunk_path in chunk_paths:
-        segments, _info = model.transcribe(str(chunk_path), beam_size=5, vad_filter=True)
+        segments, info = model.transcribe(str(chunk_path), beam_size=5, vad_filter=True)
+        if language is None:
+            language = getattr(info, "language", None)
         for s in segments:
             all_segments.append(
                 {"start": s.start + offset, "end": s.end + offset, "text": s.text.strip()}
             )
-        # fixed-size chunks (preprocessing.chunk_audio), so a flat offset bump is correct
-        # for every chunk except (harmlessly) the last one, which is never read again.
         offset += chunk_minutes * 60
 
-    return all_segments
+    return all_segments, language

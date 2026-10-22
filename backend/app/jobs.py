@@ -8,10 +8,9 @@ from pathlib import Path
 
 from . import db
 from .config import MEDIA_DIR
-from .pipeline.chaptering import build_chapters
+from .pipeline.gemini_chaptering import build_chapters
 from .pipeline.notes import build_notes
 from .pipeline.preprocessing import chunk_audio, preprocess_audio
-from .pipeline.segmentation import segment
 from .pipeline.transcription import transcribe_chunks
 from .sources.spotify_listennotes import download_spotify_episode_audio
 from .sources.youtube import download_youtube_audio
@@ -41,18 +40,13 @@ def run_pipeline(job_id: str, source_type: str, source_ref: str, local_media_pat
 
         # 3. Transcribe -------------------------------------------------------
         db.update_job(job_id, status="transcribing", progress=0.35)
-        sentences = transcribe_chunks(chunk_paths, chunk_minutes=CHUNK_MINUTES)
+        sentences, language = transcribe_chunks(chunk_paths, chunk_minutes=CHUNK_MINUTES)
         if not sentences:
             raise RuntimeError("Transcription produced no speech segments.")
 
-        # 4. Segment ----------------------------------------------------------
-        db.update_job(job_id, status="segmenting", progress=0.65)
-        texts = [s["text"] for s in sentences]
-        boundaries = segment(texts)
-
-        # 5. Title / keyword / sentiment chapters ------------------------------
-        db.update_job(job_id, status="titling", progress=0.8)
-        chapters = build_chapters(sentences, boundaries)
+        # 4. Chapter (boundaries + titles + keywords + sentiment, all via Gemini) ----
+        db.update_job(job_id, status="titling", progress=0.7)
+        chapters = build_chapters(sentences, language_hint=language)
 
         # 6. AI notes (best effort: a notes failure must not fail the whole job) -
         db.update_job(job_id, status="notes", progress=0.9)
