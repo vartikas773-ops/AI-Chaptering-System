@@ -83,25 +83,26 @@ export default function App() {
     <>
       <Navbar theme={theme} onSetTheme={setTheme} page={page} onNavigate={setPage} />
       <main className="app">
-        {page === 'home' && (
-          <>
-            {status === 'idle' && <Home onCreated={startJob} />}
-            {status === 'processing' && <Processing progress={progress} stage={jobStatus} title={title} />}
-            {status === 'error' && (
-              <section className="center-stack">
-                <h2>We couldn't process this recording</h2>
-                <p className="error">{firstLine}</p>
-                {rest.length > 0 && (
-                  <details className="muted small"><summary>Technical details</summary><pre className="trace">{rest.join('\n')}</pre></details>
-                )}
-                <button className="btn btn-primary" onClick={reset}>Try another recording</button>
-              </section>
-            )}
-            {status === 'done' && (
-              <Workspace result={result} fileName={title} theme={theme} onNewFile={reset} />
-            )}
-          </>
-        )}
+        <div
+  aria-hidden={page !== 'home'}
+  style={page !== 'home' ? { height: 0, overflow: 'hidden', visibility: 'hidden' } : undefined}
+>
+  {status === 'idle' && <Home onCreated={startJob} />}
+  {status === 'processing' && <Processing progress={progress} stage={jobStatus} title={title} />}
+  {status === 'error' && (
+    <section className="center-stack">
+      <h2>We couldn't process this recording</h2>
+      <p className="error">{firstLine}</p>
+      {rest.length > 0 && (
+        <details className="muted small"><summary>Technical details</summary><pre className="trace">{rest.join('\n')}</pre></details>
+      )}
+      <button className="btn btn-primary" onClick={reset}>Try another recording</button>
+    </section>
+  )}
+  {status === 'done' && (
+    <Workspace result={result} fileName={title} theme={theme} onNewFile={reset} active={page === 'home'} />
+  )}
+</div>
         {page === 'library' && <Library onOpen={startJob} onGoHome={() => { reset(); setPage('home') }} />}
         {page === 'settings' && <Settings theme={theme} onSetTheme={setTheme} />}
         {page === 'about' && <About />}

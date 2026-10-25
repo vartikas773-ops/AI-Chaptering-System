@@ -1,6 +1,6 @@
 """
-YouTube ingestion via yt-dlp (same tool the original brief already listed).
-Downloads best audio track only -> mp3, to keep the pipeline media-type agnostic.
+YouTube ingestion via yt-dlp. Downloads video + audio (max 720p, H.264) as one mp4,
+so the frontend can show the picture. The pipeline extracts the audio itself.
 """
 from pathlib import Path
 
@@ -10,14 +10,14 @@ from ..config import MEDIA_DIR
 
 
 def download_youtube_audio(url: str, job_id: str) -> tuple[Path, str]:
-    """Returns (path_to_audio_file, resolved_title)."""
-    out_template = str(MEDIA_DIR / f"{job_id}.%(ext)s")
+    """Returns (path_to_media_file, resolved_title). Now an mp4 with video."""
     ydl_opts = {
-        "format": "bestaudio/best",
-        "outtmpl": out_template,
-        "postprocessors": [
-            {"key": "FFmpegExtractAudio", "preferredcodec": "mp3", "preferredquality": "192"}
-        ],
+        "format": (
+            "bestvideo[height<=720][vcodec^=avc1]+bestaudio[ext=m4a]"
+            "/best[height<=720][ext=mp4]/best[height<=720]"
+        ),
+        "merge_output_format": "mp4",
+        "outtmpl": str(MEDIA_DIR / f"{job_id}.%(ext)s"),
         "quiet": True,
         "noplaylist": True,
     }
@@ -25,11 +25,11 @@ def download_youtube_audio(url: str, job_id: str) -> tuple[Path, str]:
         info = ydl.extract_info(url, download=True)
         title = info.get("title", url)
 
-    audio_path = MEDIA_DIR / f"{job_id}.mp3"
-    if not audio_path.exists():
-        candidates = list(MEDIA_DIR.glob(f"{job_id}.*"))
+    media_path = MEDIA_DIR / f"{job_id}.mp4"
+    if not media_path.exists():
+        candidates = [p for p in MEDIA_DIR.glob(f"{job_id}.*") if p.suffix not in (".part", ".ytdl")]
         if not candidates:
             raise RuntimeError("yt-dlp did not produce an output file")
-        audio_path = candidates[0]
+        media_path = candidates[0]
 
-    return audio_path, title
+    return media_path, title

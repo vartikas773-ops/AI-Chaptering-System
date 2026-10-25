@@ -5,7 +5,7 @@ import ChapterList from './ChapterList'
 import Transcript from './Transcript'
 import { download, toSRT, toVTT, visibleChapters, fmt, notesToMarkdown } from '../utils'
 
-export default function Workspace({ result, fileName, theme, onNewFile }) {
+export default function Workspace({ result, fileName, theme, onNewFile, active = true }) {
   const [ws, setWs] = useState(null)
   const [time, setTime] = useState(0)
   const [tab, setTab] = useState('notes')
@@ -26,17 +26,17 @@ export default function Workspace({ result, fileName, theme, onNewFile }) {
   }
 
   // Space = play/pause, ←/→ = ±5s (ignored while typing)
-  useEffect(() => {
-    if (!ws) return
-    const onKey = (e) => {
-      if (['INPUT', 'TEXTAREA'].includes(e.target.tagName)) return
-      if (e.code === 'Space') { e.preventDefault(); ws.playPause() }
-      else if (e.code === 'ArrowRight') ws.setTime(ws.getCurrentTime() + 5)
-      else if (e.code === 'ArrowLeft') ws.setTime(Math.max(0, ws.getCurrentTime() - 5))
-    }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [ws])
+    useEffect(() => {
+      if (!ws || !active) return
+      const onKey = (e) => {
+        if (['INPUT', 'TEXTAREA'].includes(e.target.tagName)) return
+        if (e.code === 'Space') { e.preventDefault(); ws.playPause() }
+        else if (e.code === 'ArrowRight') ws.setTime(ws.getCurrentTime() + 5)
+        else if (e.code === 'ArrowLeft') ws.setTime(Math.max(0, ws.getCurrentTime() - 5))
+      }
+      window.addEventListener('keydown', onKey)
+      return () => window.removeEventListener('keydown', onKey)
+    }, [ws, active])
 
   const hasTranscript = result.transcript?.length > 0
   const exports = [

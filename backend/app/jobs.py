@@ -14,8 +14,20 @@ from .pipeline.preprocessing import chunk_audio, preprocess_audio
 from .pipeline.transcription import transcribe_chunks
 from .sources.spotify_listennotes import download_spotify_episode_audio
 from .sources.youtube import download_youtube_audio
+import subprocess
 
 CHUNK_MINUTES = 10
+
+def make_playable(path: Path) -> Path:
+    if path.suffix.lower() in {".mp3", ".wav", ".m4a", ".mp4"}:
+        return path
+    out = path.with_suffix(".play.mp4")
+    subprocess.run(
+        ["ffmpeg", "-y", "-i", str(path), "-c:v", "libx264", "-preset", "veryfast",
+         "-crf", "23", "-c:a", "aac", "-movflags", "+faststart", str(out)],
+        check=True,
+    )
+    return out
 
 
 def run_pipeline(job_id: str, source_type: str, source_ref: str, local_media_path: Path | None = None):
@@ -31,7 +43,8 @@ def run_pipeline(job_id: str, source_type: str, source_ref: str, local_media_pat
         else:
             raise ValueError(f"Unknown source_type: {source_type}")
 
-        db.update_job(job_id, media_path=str(media_path), title=title, progress=0.15)
+        play_path = make_playable(media_path)
+        db.update_job(job_id, media_path=str(play_path), title=title, progress=0.15)
 
         # 2. Preprocess -----------------------------------------------------
         db.update_job(job_id, status="preprocessing", progress=0.2)
@@ -73,3 +86,6 @@ def run_pipeline(job_id: str, source_type: str, source_ref: str, local_media_pat
 
     except Exception as e:  # noqa: BLE001 -- surface any pipeline failure to the UI
         db.update_job(job_id, status="error", error=f"{e}\n{traceback.format_exc()[-1500:]}")
+
+
+
