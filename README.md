@@ -16,6 +16,13 @@ Upload a podcast, lecture or meeting, paste a YouTube link, or search for a podc
 
 Everything runs locally. No recording or transcript is sent to an outside AI service.
 
+## Live App: 
+
+<img width="1917" height="986" alt="Screenshot 2026-10-15 224407" src="https://github.com/user-attachments/assets/e8a39262-d13f-47a6-ad85-bd19252342af" />
+<img width="1917" height="973" alt="Screenshot 2026-10-26 001515" src="https://github.com/user-attachments/assets/54febe5d-1f7b-472e-9e74-4c42e145d2f2" />
+<img width="1917" height="981" alt="Screenshot 2026-10-26 001555" src="https://github.com/user-attachments/assets/6cf26a3e-1b18-46fe-aa78-c19050177d6c" />
+
+
 ## How it works
 
 ```
